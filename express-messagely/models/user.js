@@ -20,7 +20,7 @@ class User {
       `INSERT INTO users (username,
         password, first_name, last_name,
         phone, join_at, last_login_at) VALUES ($1, $2, $3, $4, $5, current_timestamp, current_timestamp)
-        RETURNING id, username, password, first_name, last_name, phone`, [username, hashedPassword, first_name, last_name, phone])
+        RETURNING username, password, first_name, last_name, phone`, [username, hashedPassword, first_name, last_name, phone])
 
         return result.rows[0];
   }
@@ -72,6 +72,7 @@ class User {
       if (!result.rows[0]) {
         throw new ExpressError(`No user at: ${username}`, 404)
       }
+      return result.rows[0];
   }
 
   /** Return messages from this user.
@@ -83,11 +84,11 @@ class User {
    */
 
   static async messagesFrom(username) {
-    const result = await db.query(`SELECT m.to_username, m.body, m.sent_at, m.read_at,
-                              u.username, u.first_name, u.last_name, u.phone
-                              FROM messages AS m
-                              JOIN users AS u ON m.to_username = u.username
-                              WHERE username = $1`, [username]);
+    const result = await db.query(`SELECT m.id, m.to_username, u.first_name,
+                                  u.last_name, u.phone, m.body,
+                                  m.sent_at, m.read_at FROM messages AS m
+                                  JOIN users AS u ON m.to_username = u.username
+                                  WHERE from_username = $1`, [username]);
 
       return result.rows.map(m => ({id: m.id, to_user: {
           username: m.username, first_name: m.first_name, last_name: m.last_name, phone: m.phone
@@ -103,11 +104,11 @@ class User {
    */
 
   static async messagesTo(username) {
-    const result = await db.query(`SELECT m.id, m.from_username, u.username,
+    const result = await db.query(`SELECT m.id, m.from_username,
                                   u.first_name, u.last_name, u.phone, m.body,
                                   m.sent_at, m.read_at FROM messages AS m
                                   JOIN users AS u ON m.from_username = u.username
-                                  WHERE m.to_username = $1`, [username]);
+                                  WHERE to_username = $1`, [username]);
 
 
     return result.rows.map(m => ({id: m.id, from_user: {
