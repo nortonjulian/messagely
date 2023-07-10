@@ -1,4 +1,4 @@
-const router = require("express").Router;
+const Router = require("express").Router;
 const User = require("../models/user")
 const { ensureLoggedIn, ensureCorrectUser } = require("../middleware/auth")
 
