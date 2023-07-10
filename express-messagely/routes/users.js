@@ -1,5 +1,5 @@
-const Router = require("express").Router;
-const User = ("../models/user")
+const router = require("express").Router;
+const User = require("../models/user")
 const { ensureLoggedIn, ensureCorrectUser } = require("../middleware/auth")
 
 const router = new Router()
@@ -10,7 +10,7 @@ const router = new Router()
  **/
 router.get("/", ensureLoggedIn, async (req, res, next) => {
     try {
-        let users = User.all()
+        let users = await User.all()
         return res.json({users})
     } catch (err) {
         return next(err)
@@ -23,9 +23,9 @@ router.get("/", ensureLoggedIn, async (req, res, next) => {
  * => {user: {username, first_name, last_name, phone, join_at, last_login_at}}
  *
  **/
-router.get("/:username", ensureLoggedIn, async (req, res, next) => {
+router.get("/:username", ensureCorrectUser, async (req, res, next) => {
     try {
-        let user = User.get(req.params.username)
+        let user = await User.get(req.params.username)
         return res.json({user})
     } catch (err) {
         return next(err)
@@ -43,7 +43,7 @@ router.get("/:username", ensureLoggedIn, async (req, res, next) => {
  **/
 router.get("/:username/to", ensureCorrectUser, async (req, res, next) => {
     try {
-        let messages = User.messagesTo(req.params.username)
+        let messages = await User.messagesTo(req.params.username)
         return res.json({messages})
     } catch (err) {
         return next(err)
@@ -61,7 +61,7 @@ router.get("/:username/to", ensureCorrectUser, async (req, res, next) => {
  **/
 router.get("/:username/from", ensureCorrectUser, async (req, res, next) => {
     try {
-        let messages = User.messagesFrom(req.params.username)
+        let messages = await User.messagesFrom(req.params.username)
         return res.json({messages})
     } catch (err) {
         return next(err)
